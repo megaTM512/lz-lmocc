@@ -128,8 +128,6 @@ std::vector<PhraseC> lmocc(std::vector<PhraseC>& phrases) {
       assert(newEarlyPos <= phrase.pos &&
              "New occurrence position should be before or equal original "
              "position");
-      std::cout << "Original Pos: " << phrase.pos
-                << ", New Occ Pos: " << newEarlyPos << std::endl;
     }
     if (newEarlyPos != -1) {
       phrase.pos = static_cast<uint32_t>(newEarlyPos);
@@ -164,13 +162,13 @@ std::vector<int> heightAnalysis(const std::vector<PhraseC>& phrases) {
 }
 
 int main(int argc, char* argv[]) {
-  cxxopts::Options options("lz-maxocc",
-                           "LZ-MAXOCC Compression Enhancement Tool");
+  cxxopts::Options options("lz-lmocc",
+                           "LZ-LMOCC Compression Enhancement Tool");
   options.add_options()("i,input", "Input LZHB compressed file",
                         cxxopts::value<std::string>())(
       "o,output", "Output LZHB compressed file",
       cxxopts::value<std::string>()->default_value(
-          "output/lzmaxocc_output.lzcp"));
+          "output/lzlmocc_output.lzcp"));
   auto result = options.parse(argc, argv);
 
   std::string inputFile = result["input"].as<std::string>();
@@ -230,20 +228,20 @@ int main(int argc, char* argv[]) {
       maxHeightAfter = h;
     }
   }
+  averageHeightAfter /= newHeights.size();
   double varianceHeightAfter = 0;
   for (uint64_t h : newHeights) {
     varianceHeightAfter += (h - averageHeightAfter) * (h - averageHeightAfter);
   }
   varianceHeightAfter /= newHeights.size();
-  averageHeightAfter /= newHeights.size();
   std::cout << "Average height after: " << averageHeightAfter << std::endl;
   std::cout << "Max height after: " << maxHeightAfter << std::endl;
   std::cout << "Variance height after: " << varianceHeightAfter << std::endl;
 
   // Save to CSV
   {
-    if (!std::filesystem::exists("lz-lmocc_results.csv")) {
-      std::fstream resultcsv("lz-lmocc_results.csv",
+    if (!std::filesystem::exists("./lz-lmocc_results.csv")) {
+      std::fstream resultcsv("./lz-lmocc_results.csv",
                              std::ios::out | std::ios::app);
       resultcsv << "Timestamp,"
                 << "Algorithm,"
@@ -264,7 +262,7 @@ int main(int argc, char* argv[]) {
     std::string timestamp = std::ctime(&now_time);  // Has newline at end
     timestamp.erase(std::remove(timestamp.begin(), timestamp.end(), '\n'),
                     timestamp.end());
-    std::fstream resultcsv("lz-lmocc_results.csv",
+    std::fstream resultcsv("./lz-lmocc_results.csv",
                            std::ios::out | std::ios::app);
     resultcsv << timestamp << "," << "LZ-LMOCC" << "," << inputFile << ","
               << inputPhrases.size() << "," << averageHeightBefore << ","
